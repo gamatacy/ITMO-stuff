@@ -1,0 +1,77 @@
+ORG 0x37F					
+ARRSTART:	WORD	0x5AE			;Адрес начала массива
+ARRINDEX:	WORD	?				;Адрес текущего элемента массива
+STOPWORD: 	WORD	0x0A 			;Символ остановки вывода
+CHECKNUM:	WORD	0xFF 			;
+START:		LD 		ARRSTART 		;Грузим начало массива в аккум
+			ST		ARRINDEX 		;Сохраняем в ячейку с текущим элементом
+CYCLE:		LD		(ARRINDEX) 		;Загружаем первые 2 символа
+			ST		SYMBOL 			;Сохраняем их в памяти
+			CALL	WRITE 			;Вызываем подпрограмму для вывода 1 символа
+			SWAB					;Меняем символы местами
+			ST		SYMBOL 			;Сохраняем их в памяти
+			CALL	WRITE 			;Вызываем подпрограмму для вывода 2 символа
+			LD		ARRINDEX 		;Грузим текущий адрес текущего элемента
+			INC 					;Увеличиваем адрес текущего элемента
+			ST		ARRINDEX 		;Сохраняем новый адрес
+			JUMP	CYCLE 			;Переходим к началу программы для вывода следующих символов
+SYMBOL:		WORD 	? 				;Содержит символы во время спинлупа и их проверки на соответствие стоп символу
+WRITE:		IN		7 				;Читаем регистр готовности
+			AND		#0x40			;Проверяем готовность ВУ-3
+			BEQ		WRITE 			;Спин-луп
+			LD 		SYMBOL			;Грузим в аккум  символ
+			CALL	CHECK 			;Проверяем не соответствует ли он стоп символу
+			LD		SYMBOL 	 		;Грузим в аккум еще раз
+			OUT		6 				;Выводим символ
+			RET 					;
+CHECK:		AND 	CHECKNUM 		;Умножаем аккум на 0x00FF чтобы откинуть старший байт
+			SUB		STOPWORD 		;Вычитаем стоп символ
+			BNE		BACK 			;Если результат вычитания 0 - вырубаем программу, иначе возрвращаемся к выводу
+			HLT 					;
+BACK:		RET 					;
+ORG 0x5AE 							;Массив строк
+X: 			WORD	0xABB2			;Строки в формате АДР1: СИМВ2 СИМВ1
+Y: 			WORD	0x0ABB
+
+///"БЕБРА" В KOI8-R
+E5E2
+F2E2
+0AE1
+
+///без комментов
+ORG 0x37F
+ARRSTART:	WORD	0x5AE
+ARRINDEX:	WORD	?
+STOPWORD: 	WORD	0x0A
+CHECKNUM:	WORD	0xFF
+START:	LD 	ARRSTART
+	ST	ARRINDEX
+CYCLE:	LD	(ARRINDEX)
+	ST	SYMBOL
+	CALL	WRITE
+	SWAB	
+	ST	SYMBOL
+	CALL	WRITE
+	LD	ARRINDEX
+	INC
+	ST	ARRINDEX
+	JUMP	CYCLE
+SYMBOL:	WORD 	?
+WRITE:	IN	7
+	AND	#0x40
+	BEQ	WRITE
+	LD 	SYMBOL
+	CALL	CHECK
+	LD	SYMBOL
+	OUT	6
+	RET
+CHECK:	AND 	CHECKNUM
+	SUB	STOPWORD
+	BNE	BACK
+	HLT
+BACK:	RET
+
+ORG 0x5AE
+	WORD	0xE5E2
+	WORD	0xF2E2
+	WORD	0x0AE1
