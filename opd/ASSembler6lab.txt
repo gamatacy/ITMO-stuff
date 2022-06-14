@@ -1,0 +1,65 @@
+ORG 	0x0
+V0:	WORD	$DEFAULT, 0x180
+V1:	WORD	$INT1, 0x180
+V2:	WORD	$DEFAULT, 0x180
+V3:	WORD	$INT3, 0x180
+V4:	WORD	$DEFAULT, 0x180
+V5:	WORD	$DEFAULT, 0x180
+V6:	WORD	$DEFAULT, 0x180
+V7:	WORD	$DEFAULT, 0x180
+	ORG	0x022
+X:	WORD	0x002A
+LOW:	WORD	0xFFD5
+HIGH:	WORD	0x002A
+DEFAULT:	IRET	
+START:	DI
+	CLA
+	OUT	0x1
+	OUT	0x5
+	OUT	0xB
+	OUT	0xE
+	OUT	0x12
+	OUT	0x16
+	OUT	0x1A
+	OUT	0x1E
+	LD	#0x9
+	OUT	0x3
+	LD	#0xB
+	OUT	0x7
+	EI
+	LD	X
+CYCLE:	SUB	#0x2
+	PUSH	
+	CALL	CHECK
+	POP
+	ST	X
+	NOP 		;Точка отладки (конец цикла)
+	JUMP 	CYCLE	
+INT1:	NOP		;Точка отладки (начало прерывания с ВУ1)
+	LD	X
+	ASL	
+	ADD	X
+	NEG
+	SUB	#0x2
+	OUT	2
+	NOP		;Точка отладки (конец прерывания с ВУ1)
+	IRET
+INT3:	NOP		;Точка отладки (начало прерывания с ВУ3)
+	IN 	6
+	SXTB
+	NEG
+	PUSH
+	CALL	CHECK
+	POP
+	ST	X
+	NOP	;Точка отладки (конец прерывания с ВУ3)
+	IRET
+CHECK:	LD	&1
+	CMP	LOW
+	BMI	NEWX
+	CMP	HIGH
+	BPL	NEWX
+	JUMP 	RETURN
+NEWX:	LD	HIGH
+RETURN:	ST	&1
+	RET
